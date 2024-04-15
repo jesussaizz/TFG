@@ -1,0 +1,147 @@
+version: '3.7'
+
+services:
+   zookeeper:
+      image: zookeeper
+      container_name: zookeeper
+      restart: always
+      networks:
+         - storm
+      environment:
+         ZOO_MY_ID: 1
+         ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181
+      ports:
+         - "2181:2181"
+         - "2888:2888"
+         - "3888:3888"
+      volumes:
+         - C:/TFGLogs/zookeeper_logs:/var/log/zookeeper
+
+   spark-master:
+      image: bitnami/spark:2.4.5 
+      networks:
+         - storm
+      restart: always
+      environment:
+         - SPARK_MODE=master
+      ports:
+         - "7077:7077"
+         - "8080:8080"
+      volumes:
+         - C:/TFGLogs/programas/spark/santanderPollutionSpark/target/santanderPollutionSpark-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/santanderPollutionSpark-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+         - C:/TFGLogs/programas/docker/santanderPollutionDocker/target/santanderPollution-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/santanderPollution-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+         - C:/TFGLogs/spark_master_logs:/opt/bitnami/spark/logs
+
+   spark-worker:
+      image: bitnami/spark:2.4.5
+      networks:
+         - storm
+      environment:
+         - SPARK_MODE=worker
+         - SPARK_MASTER_URL=spark://spark-master:7077
+      ports:
+         - "8081:8081"
+      restart: always
+      volumes:
+         - C:/TFGLogs/spark_worker_logs:/opt/bitnami/spark/logs
+
+   kafka:
+      image: wurstmeister/kafka
+      container_name: kafka
+      ports:
+         - "9092:9092"
+      environment:
+         HOSTNAME: kafka
+         HOSTNAME_COMMAND: "docker info | grep 'Node Address: ' | cut -d' ' -f 5"
+         KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+         # modificacion para autenticacion y autorizacion
+         KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://localhost:9092 
+         KAFKA_LISTENERS: SASL_PLAINTEXT://:9092 
+         KAFKA_INTER_BROKER_LISTENER_NAME: SASL_PLAINTEXT
+         KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+         KAFKA_SUPER_USERS: User:admin;User:admin2
+         KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+         KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+         KAFKA_OPTS: "-Djava.security.auth.login.config=/jaas.conf"
+      volumes:
+         - /var/run/docker.sock:/var/run/docker.sock
+         - C:/TFGLogs/kafka:/opt/kafka/logs
+         #- kafka_logs:/opt/kafka/logs
+         # autenticacion y autorizacion
+         - C:/TFGLogs/jaas.conf:/jaas.conf
+         # credenciaes incorrectas para autenticacion
+         - C:/TFGLogs/client.properties:/client.properties 
+         # credenciales correctas para autenticacion
+         - C:/TFGLogs/admin.properties:/admin.properties 
+         # credenciales usuario1 correctas
+         - C:/TFGLogs/producer.properties:/producer.properties 
+         # credenciales usuario2 correctas
+         - C:/TFGLogs/consumer.properties:/consumer.properties 
+      networks:
+         - storm
+
+   cassandra:
+      image: cassandra
+      container_name: cassandra
+      networks:
+         - storm
+      volumes:
+         - C:/TFGLogs/cassandra_data/apache:/home/apache
+         - C:/TFGLogs/cassandra_data/logs:/var/log/cassandra
+      environment:
+         CASSANDRA_BROADCAST_ADDRESS: cassandra 
+         CASSANDRA_CLUSTER_NAME: POLLUTION_CLUSTER
+         CASSANDRA_ENDPOIN_SNITCH: GossipingPropertyFileSnitch
+         CASSANDRA_DC: dc1
+         CASSANDRA_RACK: rack1
+         CASSANDRA_SEEDS: cassandra
+      ports:
+         - "9042:9042"
+
+   elasticsearch:
+      image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+      environment:
+         - discovery.type=single-node
+      ports:
+         - "9200:9200"
+         - "9300:9300"
+      networks:
+         - storm
+
+   logstash:
+      image: docker.elastic.co/logstash/logstash:7.9.3
+      volumes:
+         - C:/TFGLogs/logstash/logstash_config:/usr/share/logstash/config
+         - C:/TFGLogs/logstash/logstash_pipeline:/usr/share/logstash/pipeline
+         - C:/TFGLogs/kafka:/usr/share/logstash/kafka_logs/broker
+         #- C:/TFGLogs/cassandra_data/logs:/usr/share/logstash/cassandra_data/logs
+         #- C:/TFGLogs/zookeeper_logs:/usr/share/logstash/zookeeper_logs
+         #- C:/TFGLogs/spark_master_logs:/usr/share/logstash/spark_master_logs
+         #- C:/TFGLogs/spark_worker_logs:/usr/share/logstash/spark_worker_logs
+         #- kafka_logs:/usr/share/logstash/kafkalogs # Meto el volumen con los logs de kafka a filebeat 
+      ports:
+         - "5044:5044"
+      depends_on:
+         - elasticsearch
+      networks:
+         - storm
+
+   kibana:
+      image: docker.elastic.co/kibana/kibana:7.9.3
+      ports:
+         - "5601:5601"
+      environment:
+         ELASTICSEARCH_URL: http://elasticsearch:9200
+         ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      depends_on:
+         - elasticsearch
+      networks:
+         - storm
+#volumes:
+   #kafka_logs: # Define el volumen para logs de Kafka
+     #external: true
+
+networks:
+   storm:
+      driver: bridge
