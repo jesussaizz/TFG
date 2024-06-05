@@ -15,7 +15,8 @@ services:
          - "2888:2888"
          - "3888:3888"
       volumes:
-         - C:/TFGLogs/zookeeper_logs:/var/log/zookeeper
+         - zookeeper_logs:/var/log/zookeeper
+         
 
    spark-master:
       image: bitnami/spark:2.4.5 
@@ -30,7 +31,7 @@ services:
       volumes:
          - C:/TFGLogs/programas/spark/santanderPollutionSpark/target/santanderPollutionSpark-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/santanderPollutionSpark-0.0.1-SNAPSHOT-jar-with-dependencies.jar
          - C:/TFGLogs/programas/docker/santanderPollutionDocker/target/santanderPollution-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/santanderPollution-0.0.1-SNAPSHOT-jar-with-dependencies.jar
-         - C:/TFGLogs/spark_master_logs:/opt/bitnami/spark/logs
+         - sparkmaster_logs:/opt/bitnami/spark/logs
 
    spark-worker:
       image: bitnami/spark:2.4.5
@@ -43,7 +44,7 @@ services:
          - "8081:8081"
       restart: always
       volumes:
-         - C:/TFGLogs/spark_worker_logs:/opt/bitnami/spark/logs
+         - sparkworker_logs:/opt/bitnami/spark/logs
 
    kafka:
       image: wurstmeister/kafka
@@ -87,8 +88,7 @@ services:
       networks:
          - storm
       volumes:
-         - C:/TFGLogs/cassandra_data/apache:/home/apache
-         - C:/TFGLogs/cassandra_data/logs:/var/log/cassandra
+         - cassandra_logs:/var/log/cassandra
       environment:
          CASSANDRA_BROADCAST_ADDRESS: cassandra 
          CASSANDRA_CLUSTER_NAME: POLLUTION_CLUSTER
@@ -108,6 +108,7 @@ services:
          - "9300:9300"
       networks:
          - storm
+
 
    logstash:
       image: docker.elastic.co/logstash/logstash:7.9.3
@@ -159,7 +160,14 @@ services:
 volumes:
    kafka_logs: # Define el volumen para logs de Kafka
      external: true
-
+   zookeeper_logs: 
+     external: true
+   sparkmaster_logs: 
+     external: true
+   sparkworker_logs: 
+     external: true
+   cassandra_logs: 
+     external: true
 
 networks:
    storm:
