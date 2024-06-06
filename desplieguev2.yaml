@@ -137,7 +137,7 @@ services:
     
    filebeat:
       image: docker.elastic.co/beats/filebeat:7.9.3
-      user: root # Necesario para leer los logs de Docker
+      user: root 
       volumes:
         - /var/lib/docker/containers:/var/lib/docker/containers:ro
         - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -158,7 +158,7 @@ services:
          - storm
 
 volumes:
-   kafka_logs: # Define el volumen para logs de Kafka
+   kafka_logs: 
      external: true
    zookeeper_logs: 
      external: true
