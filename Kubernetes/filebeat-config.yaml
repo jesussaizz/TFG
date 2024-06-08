@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: default
+data:
+  filebeat.yml: |
+    filebeat.inputs:
+    - type: log
+      enabled: true
+      paths:
+        - /usr/share/filebeat/kafka_logs/server.log
+      fields:
+        log_source: kafka
+        log_type: autenticacion
+      fields_under_root: true
+
+    - type: log
+      enabled: true
+      paths:
+        - /usr/share/filebeat/kafka_logs/kafka-authorizer.log
+      fields:
+        log_source: kafka
+        log_type: autorizacion
+      fields_under_root: true
+
+    output.logstash:
+      hosts: ["logstash:5044"]
+

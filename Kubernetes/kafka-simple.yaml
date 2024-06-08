@@ -1,0 +1,68 @@
+broker:
+  replicaCount: 1  # Asegúrate de configurar los brokers
+  automountServiceAccountToken: true
+
+controller:
+  replicaCount: 0  # Deshabilitar los nodos de controller para usar Zookeeper
+
+zookeeper:
+  enabled: false
+  connection:
+    host: zookeeper.default.svc.cluster.local
+    port: 2181
+
+persistence:
+  enabled: true
+  storageClass: "standard"
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
+
+volumeMounts:
+  - name: kafka-log-storage
+    mountPath: /opt/kafka/logs
+
+volumes:
+  - name: kafka-log-storage
+    persistentVolumeClaim:
+      claimName: kafka-log-pvc
+
+service:
+  type: ClusterIP
+  port: 9092
+  nodePort: null
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+externalAccess:
+  enabled: true
+  controller:
+    service:
+      type: NodePort
+      ports:
+        external: 9094
+  autoDiscovery:
+    enabled: true
+
+serviceAccount:
+  create: true
+
+rbac:
+  create: true
+
+controller:
+  automountServiceAccountToken: true
+
+broker:
+  automountServiceAccountToken: true
+
+topic:
+  autoCreate: true
+
+

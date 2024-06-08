@@ -1,0 +1,9 @@
+http.host: "0.0.0.0"
+path.config: /usr/share/logstash/pipeline
+# Debe coincidir con el directorio mapeado a la configuración de pipeline en docker-compose.
+
+log.level: debug
+# Los niveles de log pueden ser trace, debug, info, warning, error, y fatales.
+
+path.logs: /usr/share/logstash/logs
+# Directorio donde Logstash escribirá sus logs. 

@@ -1,0 +1,90 @@
+# filebeat-values.yaml
+filebeatConfig:
+  filebeat.yml: |
+    filebeat.inputs:
+    - type: log
+      enabled: true
+      paths:
+        - /usr/share/filebeat/kafka_logs_0/server.log
+      fields:
+        log_source: kafka0
+        log_type: autenticacion
+      fields_under_root: true
+
+    - type: log
+      enabled: true
+      paths:
+        - /usr/share/filebeat/kafka_logs_0/kafka-authorizer.log
+      fields:
+        log_source: kafka0
+        log_type: autorizacion
+      fields_under_root: true
+
+    - type: log
+      enabled: true
+      paths:
+        - /usr/share/filebeat/kafka_logs_1/server.log
+      fields:
+        log_source: kafka1
+        log_type: autenticacion
+      fields_under_root: true
+
+    - type: log
+      enabled: true
+      paths:
+        - /usr/share/filebeat/kafka_logs_1/kafka-authorizer.log
+      fields:
+        log_source: kafka1
+        log_type: autorizacion
+      fields_under_root: true
+
+    - type: log
+      enabled: true
+      paths:
+        - /usr/share/filebeat/kafka_logs_2/server.log
+      fields:
+        log_source: kafka2
+        log_type: autenticacion
+      fields_under_root: true
+
+    - type: log
+      enabled: true
+      paths:
+        - /usr/share/filebeat/kafka_logs_2/kafka-authorizer.log
+      fields:
+        log_source: kafka2
+        log_type: autorizacion
+      fields_under_root: true
+
+    output.logstash:
+      hosts: ["logstash:5044"]
+
+extraVolumes:
+  - name: kafka-logs-0
+    persistentVolumeClaim:
+      claimName: kafka-logs-kafka-0
+  - name: kafka-logs-1
+    persistentVolumeClaim:
+      claimName: kafka-logs-kafka-1
+  - name: kafka-logs-2
+    persistentVolumeClaim:
+      claimName: kafka-logs-kafka-2
+
+extraVolumeMounts:
+  - name: kafka-logs-0
+    mountPath: /usr/share/filebeat/kafka_logs_0
+  - name: kafka-logs-1
+    mountPath: /usr/share/filebeat/kafka_logs_1
+  - name: kafka-logs-2
+    mountPath: /usr/share/filebeat/kafka_logs_2
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 200m
+    memory: 200Mi
+
+
+

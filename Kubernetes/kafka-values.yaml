@@ -1,0 +1,120 @@
+# kafka-values.yaml
+broker:
+  replicaCount: 1  # Asegúrate de configurar los brokers
+  automountServiceAccountToken: true
+
+controller:
+  replicaCount: 0  # Deshabilitar los nodos de controller para usar Zookeeper
+
+zookeeper:
+  enabled: false
+  connection:
+    host: zookeeper.default.svc.cluster.local
+    port: 2181
+
+externalAccess:
+  enabled: true
+  service:
+    type: LoadBalancer
+  autoDiscovery:
+    enabled: true
+
+auth:
+  clientProtocol: sasl
+  interBrokerProtocol: sasl
+  sasl:
+    jaas:
+      clientUser: admin
+      clientPassword: admin-password
+      interBrokerUser: admin
+      interBrokerPassword: admin-password
+      zookeeperUser: admin
+      zookeeperPassword: admin-password
+  saslMechanisms: PLAIN
+  superUsers: "User:admin;User:admin2"
+
+configurationOverrides:
+  "listener.name.sasl_plaintext.plain.sasl.jaas.config": |
+    org.apache.kafka.common.security.plain.PlainLoginModule required
+    username="admin" password="admin-password"
+    user_admin="admin-password"
+    user_user1="user1-password"
+    user_user2="user2-password";
+  "listener.security.protocol.map": "SASL_PLAINTEXT:SASL_PLAINTEXT,PLAINTEXT:PLAINTEXT"
+  "sasl.enabled.mechanisms": "PLAIN"
+  "sasl.mechanism.inter.broker.protocol": "PLAIN"
+  "listeners": "SASL_PLAINTEXT://0.0.0.0:9092,PLAINTEXT://0.0.0.0:9093"
+  "advertised.listeners": "SASL_PLAINTEXT://localhost:9092,PLAINTEXT://localhost:9093"
+  "authorizer.class.name": "kafka.security.authorizer.AclAuthorizer"
+  "super.users": "User:admin;User:admin2"
+
+volumeClaimTemplates:
+  - metadata:
+      name: kafka-logs
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 1Gi
+
+extraVolumes:
+  - name: jaas-config
+    configMap:
+      name: jaas-config
+  - name: admin-config
+    configMap:
+      name: admin-config
+  - name: consumer-config
+    configMap:
+      name: consumer-config
+  - name: producer-config
+    configMap:
+      name: producer-config
+
+extraVolumeMounts:
+  - name: jaas-config
+    mountPath: /opt/bitnami/kafka/config/jaas.conf
+    subPath: jaas.conf
+  - name: kafka-logs
+    mountPath: /opt/kafka/logs
+  - name: admin-config
+    mountPath: /admin.properties
+    subPath: admin.properties
+  - name: consumer-config
+    mountPath: /consumer.properties
+    subPath: consumer.properties
+  - name: producer-config
+    mountPath: /producer.properties
+    subPath: producer.properties
+
+persistence:
+  enabled: true
+  storageClass: "standard"
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+rbac:
+  create: true
+
+controller:
+  automountServiceAccountToken: true
+
+broker:
+  automountServiceAccountToken: true
+
+
+
+
+
+
+

@@ -1,0 +1,103 @@
+elasticsearchHosts: "https://elasticsearch-master:9200"
+
+replicas: 1
+
+extraEnvs:
+  - name: "NODE_OPTIONS"
+    value: "--max-old-space-size=1800"
+
+image: "docker.elastic.co/kibana/kibana"
+imageTag: "8.5.1"
+imagePullPolicy: "IfNotPresent"
+
+resources:
+  requests:
+    cpu: "250m"
+    memory: "2Gi"
+  limits:
+    cpu: "500m"
+    memory: "4Gi"
+
+protocol: http
+
+serverHost: "0.0.0.0"
+
+server.publicBaseUrl: "http://35.205.180.18:5601"
+
+healthCheckPath: "/app/kibana"
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  runAsUser: 1000
+
+serviceAccount: ""
+
+automountToken: false
+
+httpPort: 5601
+
+extraVolumes: []
+
+extraVolumeMounts: []
+
+extraContainers: []
+
+extraInitContainers: []
+
+updateStrategy:
+  type: "Recreate"
+
+service:
+  type: LoadBalancer
+  loadBalancerIP: ""
+  port: 5601
+  nodePort: ""
+  labels: {}
+  annotations: {}
+  loadBalancerSourceRanges: []
+
+ingress:
+  enabled: false
+  className: "nginx"
+  pathtype: ImplementationSpecific
+  annotations: {}
+  hosts:
+    - host: kibana-example.local
+      paths:
+        - path: /
+
+readinessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 3
+  timeoutSeconds: 5
+
+imagePullSecrets: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+nameOverride: ""
+fullnameOverride: ""
+
+lifecycle: {}
+
+#kibanaConfig:
+  #kibana.yml: |
+    #server.host: "0.0.0.0"
+    #elasticsearch.hosts: ["https://elasticsearch-master:9200"]
+    #elasticsearch.username: "admin"
+    #elasticsearch.password: "admin1"
+    #xpack.security.enabled: true
+    #xpack.security.authc.providers:
+      #basic.basic1:
+        #order: 0
+
+

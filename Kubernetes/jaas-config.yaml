@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jaas-config
+  namespace: default  # Replace with your namespace if different
+data:
+  jaas.conf: |
+    KafkaServer {
+       org.apache.kafka.common.security.plain.PlainLoginModule required
+       username="admin"
+       password="admin-password"
+       user_admin="admin-password"
+       user_user1="user1-password"
+       user_user2="user2-password";
+    };
+
+# Define la configuración de JAAS como un archivo que puede ser referenciado y montado en los pods.
+
+# El ConfigMap se utiliza para almacenar la configuracion de JAAS en un archivo que se monta en los pods de Kafka. 
+# Esto permite que Kafka use esta configuracion en su autenticacion SASL.

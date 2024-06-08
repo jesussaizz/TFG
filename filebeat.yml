@@ -1,0 +1,22 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /usr/share/filebeat/kafka_logs/server.log # Logs de server.log (ahi estan los logs de autenticacion)
+  fields:
+    log_source: kafka
+    log_type: autenticacion
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /usr/share/filebeat/kafka_logs/kafka-authorizer.log # Logs de autorizacion 
+  fields:
+    log_source: kafka
+    log_type: autorizacion
+  fields_under_root: true
+
+output.logstash:
+  hosts: ["logstash:5044"]
+
